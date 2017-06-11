@@ -1,5 +1,4 @@
 # lmjalgo
-lua-bind for mahjong algorithm
-## benchmark
+lua-bind for majhong algorithm
 ## lua-bind
 see [test](test.lua)
