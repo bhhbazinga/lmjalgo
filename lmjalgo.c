@@ -51,6 +51,7 @@ static void get_pais(lua_State *L, int index, pais_t pais)
 static int get_nums(lua_State*L, int index, nums_t nums)
 {
 	if (lua_isnoneornil(L, index)) return 0;
+	luaL_checktype(L, index, LUA_TTABLE);
 
 	int num, n;
 	n = lua_rawlen(L, index);
@@ -97,10 +98,10 @@ static void push_tingdata(lua_State* L, tingmap_t tmap)
 
 static int lcheckhu_jh(lua_State *L)
 {
+	pais_t pais;
 	bool hu;
 	int eyei, eyej;
 
-	pais_t pais;
 	get_pais(L, 1, pais);
 	hu = checkhu_jh(pais, &eyei, &eyej);
 
@@ -147,7 +148,7 @@ static int lg_gettingdata(lua_State *L)
 	gn   = get_nums(L, 2, gnums);
 	ln   = get_nums(L, 3, lnums);
 	n    = get_nums(L, 4, nums);
-	mask = luaL_checkinteger(L, 5);
+	mask = luaL_optinteger(L, 5, ALL);
 
 	TINGMAP_INIT(tmap);
 	hu = g_gettingdata(pais,
@@ -172,7 +173,7 @@ static int lg_gethumask(lua_State *L)
 	get_pais(L, 1, pais);
 	gn   = get_nums(L, 2, gnums);
 	n    = get_nums(L, 3, nums);
-	mask = luaL_checkinteger(L, 4);
+	mask = luaL_optinteger(L, 4, ALL);
 
 	res_mask = g_gethumask(pais,
 			       gnums, gn,
