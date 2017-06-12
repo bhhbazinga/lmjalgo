@@ -195,7 +195,7 @@ static bool g_dfs_shunke(kpais_t kpais, int k, int *p_leftcnt, pais_t gpais)
 	return success;
 }
 
-static int g_filter(pais_t pais, nums_t gnums, int n, nums_t m_gnums)
+inline static int g_filter(pais_t pais, nums_t gnums, int n, nums_t m_gnums)
 {
 	int gcnt = 0,curcnt;
 	int gnum, gi, gj;
@@ -217,7 +217,7 @@ static int g_filter(pais_t pais, nums_t gnums, int n, nums_t m_gnums)
 	return gcnt;
 }
 
-static void g_reset(pais_t pais, nums_t m_gnums, int n)
+inline static void g_reset(pais_t pais, nums_t m_gnums, int n)
 {
 	int gnum, gcnt, gi, gj;
 	for (int i = 0; i < n; ++i) {
@@ -230,7 +230,7 @@ static void g_reset(pais_t pais, nums_t m_gnums, int n)
 	}
 }
 
-static bool g_check3n(pais_t pais, int gcnt)
+inline static bool g_check3n(pais_t pais, int gcnt)
 {
 	int needcnt = 0, remainder;
 	for (int i = 0; i < 4; ++i) {
@@ -241,7 +241,7 @@ static bool g_check3n(pais_t pais, int gcnt)
 	return true;
 }
 
-static bool g_contains(nums_t gnums, int n, int num)
+inline static bool g_contains(nums_t gnums, int n, int num)
 {
 	for (int i = 0; i < n; ++i) if (gnums[i] == num) return true;
 	return false;

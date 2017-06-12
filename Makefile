@@ -8,7 +8,7 @@ lmjalgo.so : lmjalgo.c mjalgo.c mjalgo.h
 	$(CC) $(CFLAGS) $(SHARED) -o $@ $^
 
 clean :
-	rm *.so main
+	rm *.so
 
 .PHONY :
 	clean
