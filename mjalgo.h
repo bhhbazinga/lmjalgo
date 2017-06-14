@@ -60,7 +60,7 @@ extern "C" {
 	 * eyej : 将牌数值
 	 * */
 	bool checkhu_jh(pais_t pais, int *eyei, int *eyej);
-	bool checkhu_pph(pais_t pais, bool jh);
+	bool checkhu_pph(pais_t pais, bool jh, int n);
 	bool checkhu_hys(pais_t pais, nums_t nums, int n, bool jh);
 	bool checkhu_qxd(pais_t pais);
 	bool checkhu_lqd(pais_t pais, bool qxd);
@@ -82,30 +82,32 @@ extern "C" {
 	 * gnums : 鬼牌数组
 	 * gn    : gnums数组大小
 	 * jh    : 是否鸡胡
+	 * hu    : 鸡胡或龙七对或七小对
 	 * eyei  : 将牌花色
 	 * eyej  : 将牌数值
 	 * */
 	bool g_checkhu_jh(pais_t pais, nums_t gnums, int n, pais_t gpais, int *eyei, int *eyej);
-	bool g_checkhu_pph(pais_t gpais, bool jh);
-	bool g_checkhu_hys(pais_t gpais, nums_t nums, int n, nums_t gnums, int gn, bool jh, int eyei);
-	bool g_checkhu_qxd(pais_t pais, nums_t gnums, int n);
-	bool g_checkhu_qys(pais_t gpais, nums_t nums, int n, nums_t gnums, int gn, bool jh);
-	bool g_checkhu_lqd(pais_t pais, nums_t gnums, int n);
+	bool g_checkhu_pph(pais_t gpais, bool jh, int n);
+	bool g_checkhu_qxd(pais_t pais, nums_t gnums, int gn, pais_t gpais);
+	bool g_checkhu_lqd(pais_t pais, nums_t gnums, int gn, pais_t gpais);
+	bool g_checkhu_hys(pais_t gpais, nums_t nums, int n, nums_t gnums, int gn, bool jh, int eyei, bool qdh);
+	bool g_checkhu_qys(pais_t gpais, nums_t nums, int n, nums_t gnums, int gn, bool hu, bool qdh);
 	bool g_checkhu_hyj(pais_t gpais, nums_t nums, int n, nums_t gnums, int gn, bool jh, int eyei);
 	bool g_checkhu_xsy(pais_t gpais, nums_t nums, int n, bool jh, int eyei, int eyej);
 	bool g_checkhu_xsx(pais_t gpais, nums_t nums, int n, bool jh, int eyei, int eyej);
 	bool g_checkhu_zys(pais_t gpais, nums_t nums, int n, nums_t gnums, int gn, bool jh);
 	bool g_checkhu_qyj(pais_t gpais, nums_t nums, int n, nums_t gnums, int gn, bool jh);
-	bool g_checkhu_ssy(pais_t pais, nums_t gnums, int n);
+	bool g_checkhu_ssy(pais_t pais, nums_t gnums, int gn);
 	bool g_checkhu_dsy(pais_t gpais, nums_t nums, int n, nums_t gnums, int gn, bool jh);
 	bool g_checkhu_dsx(pais_t gpais, nums_t nums, int n, nums_t gnums, int gn, bool jh);
 
 	typedef QUEUE tingmap_t[NUM_MAX];
-	typedef uint16_t humask_t;
+	typedef uint32_t humask_t;
 
 	struct tingnode_s {
 		QUEUE node;
 		int num;
+		int score;
 		humask_t mask;
 	};
 
@@ -129,8 +131,9 @@ inline static int comp(const void *pa, const void *pb)
 	struct tingnode_s *tnode1 = *(struct tingnode_s **)pa;
 	struct tingnode_s *tnode2 = *(struct tingnode_s **)pb;
 
+	if (tnode1->score != tnode2->score) return tnode2->score - tnode1->score;
 	if (tnode1->num != tnode2->num) return tnode1->num - tnode2->num;
-	return tnode2->mask - tnode1->mask;
+	return tnode1->mask - tnode2->mask;
 }
 #define TINGMAP_FOREACH_BEGEIN(tmap, num, tnodes, n)						\
 	for (int num = 0; num < NUM_MAX; ++num) {						\
@@ -163,10 +166,73 @@ inline static int comp(const void *pa, const void *pb)
 			   humask_t mask,
 			   tingmap_t tdata);
 
-	humask_t g_gethumask(pais_t pais,
-			 nums_t gnums, int gn,
-			 nums_t nums , int n,
-			 humask_t mask);
+	inline static int getscore(humask_t mask)
+	{
+		int score = 0;
+		score += (mask & JH)  ? 2 : 0;
+		score += (mask & PPH) ? 8 : 0;
+		score += (mask & HYS) ? 8 : 0;
+		score += (mask & QXD) ? 16 : 0;
+		score += (mask & QYS) ? 16 : 0;
+		score += (mask & LQD) ? 32 : 0;
+		score += (mask & HYJ) ? 32 : 0;
+		score += (mask & XSY) ? 48 : 0;
+		score += (mask & XSX) ? 48 : 0;
+		score += (mask & ZYS) ? 64 : 0;
+		score += (mask & QYJ) ? 64 : 0;
+		score += (mask & SSY) ? 88 : 0;
+		score += (mask & DSY) ? 88 : 0;
+		score += (mask & DSX) ? 88 : 0;
+		return score;
+	}
+
+	inline static humask_t g_gethumask(pais_t pais,
+					   nums_t gnums, int gn,
+					   nums_t nums , int n,
+					   humask_t mask)
+	{
+		pais_t gpais;
+		int eyei, eyej;
+		int max_score = 0;
+		humask_t mjh = 0, mpph = 0, mhys = 0, mqxd = 0, mlqd = 0, mqys = 0, mhyj = 0,
+			 mxsy = 0, mxsx = 0, mzys = 0, mqyj = 0, mssy = 0, mdsy = 0, mdsx = 0,
+			 tmp1, tmp2,
+			 max_mask = NONE;
+
+		/*hys, qys可以和常规胡或七对胡叠加*/
+		mqxd = (QXD & mask) && g_checkhu_qxd(pais, gnums, gn, gpais) ? QXD : NONE;
+		mlqd = (LQD & mask) && g_checkhu_lqd(pais, gnums, gn, gpais) ? LQD : NONE;
+		mhys = (HYS & mask) && g_checkhu_hys(gpais, nums, n, gnums, gn, mjh, eyei, mqxd || mlqd) ? HYS : NONE;
+		mqys = (QYS & mask) && g_checkhu_qys(gpais, nums, n, gnums, gn, mjh, mqxd || mlqd) ? QYS : NONE;
+		tmp1 = mlqd | mhys | mqys;
+		tmp2 = mqxd | mhys | mqys;
+		if (tmp1 || tmp2) return getscore(tmp1) > getscore(tmp2) ? tmp1 : tmp2;
+
+		mjh = g_checkhu_jh(pais, gnums, gn, gpais, &eyei, &eyej) ? JH : NONE;
+		mpph = (PPH & mask) && g_checkhu_pph(gpais, mjh, n) ? PPH : NONE;
+		mhyj = (HYJ & mask) && g_checkhu_hyj(gpais, nums, n, gnums, gn, mjh, eyei) ? HYJ : NONE;
+		mxsy = (XSY & mask) && g_checkhu_xsy(gpais, nums, n, mjh, eyei, eyej) ? XSY : NONE;
+		mxsx = (XSX & mask) && g_checkhu_xsx(gpais, nums, n, mjh, eyei, eyej) ? XSX : NONE;
+		mzys = (ZYS & mask) && g_checkhu_zys(gpais, nums, n, gnums, gn, mjh) ? ZYS : NONE;
+		mqyj = (QYJ & mask) && g_checkhu_qyj(gpais, nums, n, gnums, gn, mjh) ? QYJ : NONE;
+		mssy = (SSY & mask) && g_checkhu_ssy(pais, gnums, gn) ? SSY : NONE;
+		mdsy = (DSY & mask) && g_checkhu_dsy(gpais, nums, n, gnums, gn, mjh) ? DSY : NONE;
+		mdsx = (DSX & mask) && g_checkhu_dsx(gpais, nums, n, gnums, gn, mjh) ? DSX : NONE;
+
+		if ((tmp1 = mdsx | mhys | mzys) && (tmp2 = getscore(tmp1)) > max_score) {max_mask = tmp1; max_score = tmp2;}
+		if ((tmp1 = mdsy | mhys | mzys) && (tmp2 = getscore(tmp1)) > max_score) {max_mask = tmp1; max_score = tmp2;}
+		if (mssy && (tmp2 = getscore(mssy)) > max_score) {max_mask = mssy; max_score = tmp2;}
+		if (mqyj && (tmp2 = getscore(mqyj)) > max_score) {max_mask = mqyj; max_score = tmp2;}
+		if ((tmp1 = mzys | mxsy | mxsx | mdsy | mdsx) && (tmp2 = getscore(tmp1)) > max_score) {max_mask = tmp1; max_score = tmp2;}
+		if ((tmp1 = mxsx | mhys | mzys) && (tmp2 = getscore(tmp1)) > max_score) {max_mask = tmp1; max_score = tmp2;}
+		if ((tmp1 = mxsy | mhys | mzys) && (tmp2 = getscore(tmp1)) > max_score) {max_mask = tmp1; max_score = tmp2;}
+		if (mhyj && (tmp2 = getscore(mhyj)) > max_score) {max_mask = mhyj; max_score = tmp2;}
+		if ((tmp1 = mhys | mxsy | mxsx | mdsy | mdsx) && (tmp2 = getscore(tmp1)) > max_score) {max_mask = tmp1; max_score = tmp2;}
+		if (mpph && (tmp2 = getscore(mpph)) > max_score) {max_mask = mpph; max_score = tmp2;}
+		if (mjh && (tmp2 = getscore(mjh)) > max_score) {max_mask = mjh; max_score = tmp2;}
+
+		return max_mask;
+	}
 
 #if defined (__cplusplus)
 }

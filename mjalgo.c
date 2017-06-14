@@ -35,14 +35,14 @@ static bool dfs_shunke(kpais_t kpais, int k)
 	}
 
 	if (KIND_ZI != k && j < 7 && kpais[j + 1] > 0 && kpais[j + 2] > 0) {
-		kpais[j] -= 1;
-		kpais[j + 1] -= 1;
-		kpais[j + 2] -= 1;
+		--kpais[j];
+		--kpais[j + 1];
+		--kpais[j + 2];
 		kpais[9] -= 3;
 		success = dfs_shunke(kpais, k);
-		kpais[j] += 1;
-		kpais[j + 1] += 1;
-		kpais[j + 2] += 1;
+		++kpais[j];
+		++kpais[j + 1];
+		++kpais[j + 2];
 		kpais[9] += 3;
 		return success;
 	}
@@ -98,17 +98,17 @@ static bool g_dfs_shunke(kpais_t kpais, int k, int *p_leftcnt, pais_t gpais)
 	CHECK_COND(k != KIND_ZI);
 
 	if (j < 7 && kpais[j + 1] > 0 && kpais[j + 2] > 0) {
-		kpais[j] -= 1;
-		kpais[j + 1] -= 1;
-		kpais[j + 2] -= 1;
+		--kpais[j];
+		--kpais[j + 1];
+		--kpais[j + 2];
 		kpais[9] -= 3;
 		success = g_dfs_shunke(kpais,
 				       k,
 				       p_leftcnt,
 				       gpais);
-		kpais[j] += 1;
-		kpais[j + 1] += 1;
-		kpais[j + 2] += 1;
+		++kpais[j];
+		++kpais[j + 1];
+		++kpais[j + 2];
 		kpais[9] += 3;
 		return success;
 	}
@@ -119,7 +119,7 @@ static bool g_dfs_shunke(kpais_t kpais, int k, int *p_leftcnt, pais_t gpais)
 		j2subcnt = kpais[j + 1] > 0;
 		needcnt = 2 - j1subcnt - j2subcnt;
 		if (needcnt <= *p_leftcnt) {
-			kpais[j] -= 1;
+			--kpais[j];
 			kpais[j - 1] -= j1subcnt;
 			kpais[j + 1] -= j2subcnt;
 			kpais[9] -= (1 + j1subcnt + j2subcnt);
@@ -128,7 +128,7 @@ static bool g_dfs_shunke(kpais_t kpais, int k, int *p_leftcnt, pais_t gpais)
 					       k,
 					       p_leftcnt,
 					       gpais);
-			kpais[j] += 1;
+			++kpais[j];
 			kpais[j - 1] += j1subcnt;
 			kpais[j + 1] += j2subcnt;
 			kpais[9] += (1 + j1subcnt + j2subcnt);
@@ -146,7 +146,7 @@ static bool g_dfs_shunke(kpais_t kpais, int k, int *p_leftcnt, pais_t gpais)
 		j2subcnt = kpais[j - 2] > 0;
 		needcnt = 2 - j1subcnt - j2subcnt;
 		if (needcnt <= *p_leftcnt) {
-			kpais[j] -= 1;
+			--kpais[j];
 			kpais[j - 1] -= j1subcnt;
 			kpais[j - 2] -= j2subcnt;
 			kpais[9] -= (1 + j1subcnt + j2subcnt);
@@ -155,7 +155,7 @@ static bool g_dfs_shunke(kpais_t kpais, int k, int *p_leftcnt, pais_t gpais)
 					       k,
 					       p_leftcnt,
 					       gpais);
-			kpais[j] += 1;
+			++kpais[j];
 			kpais[j - 1] += j1subcnt;
 			kpais[j - 2] += j2subcnt;
 			kpais[9] += (1 + j1subcnt + j2subcnt);
@@ -173,7 +173,7 @@ static bool g_dfs_shunke(kpais_t kpais, int k, int *p_leftcnt, pais_t gpais)
 	j2subcnt = kpais[j + 2] > 0;
 	needcnt = 2 - j1subcnt - j2subcnt;
 	if (needcnt <= *p_leftcnt) {
-		kpais[j] -= 1;
+		--kpais[j];
 		kpais[j + 1] -= j1subcnt;
 		kpais[j + 2] -= j2subcnt;
 		kpais[9] -= (1 + j1subcnt + j2subcnt);
@@ -182,7 +182,7 @@ static bool g_dfs_shunke(kpais_t kpais, int k, int *p_leftcnt, pais_t gpais)
 				       k,
 				       p_leftcnt,
 				       gpais);
-		kpais[j] += 1;
+		++kpais[j];
 		kpais[j + 1] += j1subcnt;
 		kpais[j + 2] += j2subcnt;
 		kpais[9] += (1 + j1subcnt + j2subcnt);
@@ -288,12 +288,13 @@ bool checkhu_jh(pais_t pais, int *eyei, int *eyej)
 	return success;
 }
 
-bool checkhu_pph(pais_t pais, bool jh)
+bool checkhu_pph(pais_t pais, bool jh, int n)
 {
 	CHECK_COND(jh);
 
-	PAIS_FOREACH(i, j) CHECK_COND(1 != pais[i][j]);
-	return true;
+	int cnt = n;
+	PAIS_FOREACH(i, j) cnt += pais[i][j] >= 3;
+	return cnt == 4;
 }
 
 bool checkhu_hys(pais_t pais, nums_t nums, int n, bool jh)
@@ -362,9 +363,9 @@ bool checkhu_xsy(pais_t pais, nums_t nums, int n, bool jh, int eyei, int eyej)
 {
 	CHECK_COND(jh);
 
-	int kecnt = (pais[3][4] > 2) +
-		    (pais[3][5] > 2) +
-		    (pais[3][6] > 2);
+	int kecnt = (pais[3][4] >= 3) +
+		    (pais[3][5] >= 3) +
+		    (pais[3][6] >= 3);
 
 	for (int i = 0; i < n; ++i) kecnt += (nums[i] > 33 && nums[i] < NUM_MAX);
 
@@ -375,13 +376,13 @@ bool checkhu_xsx(pais_t pais, nums_t nums, int n, bool jh, int eyei, int eyej)
 {
 	CHECK_COND(jh);
 
-	int kecnt = (pais[KIND_ZI][0] > 2) +
-		    (pais[KIND_ZI][1] > 2) +
-		    (pais[KIND_ZI][2] > 2) +
-		    (pais[KIND_ZI][3] > 2);
+	int kecnt = (pais[KIND_ZI][0] >= 3) +
+		    (pais[KIND_ZI][1] >= 3) +
+		    (pais[KIND_ZI][2] >= 3) +
+		    (pais[KIND_ZI][3] >= 3);
 
 	for (int i = 0; i < n; ++i) kecnt += (nums[i] > 29 && nums[i] < 34);
-	return kecnt > 2 && KIND_ZI == eyei && eyej < 4;
+	return kecnt >= 3 && KIND_ZI == eyei && eyej < 4;
 }
 
 bool checkhu_zys(pais_t pais, nums_t nums, int n, bool jh)
@@ -423,9 +424,9 @@ bool checkhu_dsy(pais_t pais, nums_t nums, int n, bool jh)
 {
 	CHECK_COND(jh);
 
-	int kecnt = (pais[KIND_ZI][4] > 2) +
-		    (pais[KIND_ZI][5] > 2) +
-		    (pais[KIND_ZI][6] > 2);
+	int kecnt = (pais[KIND_ZI][4] >= 3) +
+		    (pais[KIND_ZI][5] >= 3) +
+		    (pais[KIND_ZI][6] >= 3);
 	for (int i = 0; i < n; ++i) kecnt += (nums[i] < NUM_MAX && nums[i] > 33);
 	return kecnt;
 }
@@ -434,10 +435,10 @@ bool checkhu_dsx(pais_t pais, nums_t nums, int n, bool jh)
 {
 	CHECK_COND(jh);
 
-	int kecnt = (pais[KIND_ZI][0] > 2) +
-		    (pais[KIND_ZI][1] > 2) +
-		    (pais[KIND_ZI][2] > 2) +
-		    (pais[KIND_ZI][3] > 2);
+	int kecnt = (pais[KIND_ZI][0] >= 3) +
+		    (pais[KIND_ZI][1] >= 3) +
+		    (pais[KIND_ZI][2] >= 3) +
+		    (pais[KIND_ZI][3] >= 3);
 
 	for (int i = 0; i < n; ++i) kecnt += (nums[i] > 29 && nums[i] < 34);
 	return kecnt == 4;
@@ -484,8 +485,8 @@ _finish1:
 
 	PAIS_FOREACH(i, j) {
 		if (pais[i][j] > 0) {
-			pais[i][j] -= 1;
-			pais[i][9] -= 1;
+			--pais[i][j];
+			--pais[i][9];
 			if (!g_check3n(pais, gcnt)) goto _finish2;
 			leftcnt = gcnt - 1;
 			for(int k = 0; k < 4; ++k) {
@@ -496,8 +497,8 @@ _finish1:
 				if (!success) break;
 			}
 _finish2:
-			pais[i][j] += 1;
-			pais[i][9] += 1;
+			++pais[i][j];
+			++pais[i][9];
 			if (success) {
 				*eyei = i;
 				*eyej = j;
@@ -524,92 +525,99 @@ _finish3:
 	return success;
 }
 
-bool g_checkhu_pph(pais_t gpais, bool jh)
+bool g_checkhu_pph(pais_t gpais, bool jh, int n)
 {
 	CHECK_COND(-1 != gpais[0][0]);
-	return checkhu_pph(gpais, jh);
+	return checkhu_pph(gpais, jh, n);
 }
 
-bool g_checkhu_hys(pais_t gpais, nums_t nums, int n, nums_t gnums, int gn, bool jh, int eyei)
+bool g_checkhu_hys(pais_t gpais, nums_t nums, int n, nums_t gnums, int gn, bool jh, int eyei, bool qdh)
 {
-	CHECK_COND(jh && -1 != gpais[0][0]);
+	CHECK_COND((jh && -1 != gpais[0][0]) || qdh);
 
-	bool zi_exist = gpais[KIND_ZI][9] > 0 || eyei == -1;
+	bool zi_exist = gpais[KIND_ZI][9] > 0 || (jh && (-1 == eyei));
 	bool gconn;
-	int kmap[4] = {0, 0, 0, 0}, k;
+	int kmap[4] = {0, 0, 0, 0}, k, num;
 
 	for (int i = 0; i < 3; ++i) kmap[i] = gpais[i][9] > 0;
 
 	for (int i = 0; i < n; ++i) {
-		k = NUM2I(nums[i]);
-		gconn = g_contains(gnums, gn, nums[i]);
-		kmap[k] = kmap[k] || !gconn;
+		num = nums[i];
+		k = NUM2I(num);
+		gconn = g_contains(gnums, gn, num);
+		kmap[k] = !gconn;
 		zi_exist = zi_exist || k == KIND_ZI || gconn;
 	}
 	return zi_exist && kmap[0] + kmap[1] + kmap[2] + kmap[3] < 3;
 }
 
-bool g_checkhu_qxd(pais_t pais, nums_t gnums, int n)
+bool g_checkhu_qxd(pais_t pais, nums_t gnums, int gn, pais_t gpais)
 {
 	CHECK_COND(14 == PAIS_COUNT(pais));
 
 	int m_gnums[G_MAX_COUNT * 2] = {-1, -1, -1, -1}; // num|cnt|num|cnt
-	int gcnt = g_filter(pais, gnums, n, m_gnums);
+	int gcnt = g_filter(pais, gnums, gn, m_gnums);
 	if (gcnt <= 0) return checkhu_qxd(pais);
 
 	bool success = false;
+	PAIS_COPY(gpais, pais);
 	PAIS_FOREACH(i, j) {
-		gcnt -= pais[i][j] == 1 || pais[i][j] == 3;
+		if(pais[i][j] == 1 || pais[i][j] == 3) {
+			--gcnt;
+			++gpais[i][j];
+		}
 		success = gcnt >= 0;
 		if (!success) goto _failed;
 	}
 
-	g_reset(pais, m_gnums, n);
-	return true;
+	g_reset(pais, m_gnums, gn);
+	return gcnt % 2 == 0;
 
 _failed:
-	g_reset(pais, m_gnums, n);
+	g_reset(pais, m_gnums, gn);
 	return false;
 }
 
-bool g_checkhu_qys(pais_t gpais, nums_t nums, int n, nums_t gnums, int gn, bool jh)
+bool g_checkhu_qys(pais_t gpais, nums_t nums, int n, nums_t gnums, int gn, bool jh, bool qdh)
 {
-	CHECK_COND(jh && -1 != gpais[0][0]);
+	CHECK_COND((jh && -1 != gpais[0][0]) || qdh);
 
-	int kmap[4] = {0, 0, 0, 0}, k;
+	int kmap[4] = {0, 0, 0, 0}, k, num;
 	for (int i = 0; i < 4; ++i) kmap[i] = gpais[i][9] > 0;
 
 	for (int i = 0; i < n; ++i) {
-		k = NUM2I(nums[i]);
-		kmap[k] = kmap[k] || !g_contains(gnums, gn, nums[i]);
+		num = nums[i];
+		k = NUM2I(num);
+		kmap[k] = !g_contains(gnums, gn, num);
 	}
 
 	return kmap[0] + kmap[1] + kmap[2] + kmap[3] == 1;
 }
 
-bool g_checkhu_lqd(pais_t pais, nums_t gnums, int n)
+bool g_checkhu_lqd(pais_t pais, nums_t gnums, int gn, pais_t gpais)
 {
 	CHECK_COND(14 == PAIS_COUNT(pais));
 
 	int m_gnums[G_MAX_COUNT * 2] = {-1, -1, -1, -1}; // num|cnt|num|cnt
-	int gcnt = g_filter(pais, gnums, n, m_gnums);
+	int gcnt = g_filter(pais, gnums, gn, m_gnums);
 	if (gcnt <= 0) return checkhu_lqd(pais, checkhu_qxd(pais));
 
 	bool exist4 = false;
+	PAIS_COPY(gpais, pais);
 	PAIS_FOREACH(i, j) {
 		switch(pais[i][j]) {
-			case 1 : gcnt -= 1; break;
-			case 3 : gcnt -= 1; exist4 = gcnt >= 0;
+			case 1 : --gcnt; ++gpais[i][j]; break;
+			case 3 : --gcnt; ++gpais[i][j];
 			case 4 : exist4 = true;
 		}
 		if (gcnt < 0) goto _failed;
 	}
 
-	g_reset(pais, m_gnums, n);
+	g_reset(pais, m_gnums, gn);
 	return gcnt % 2 == 0 && exist4;
 
 _failed:
-	g_reset(pais, m_gnums, n);
+	g_reset(pais, m_gnums, gn);
 	return false;
 }
 
@@ -621,12 +629,14 @@ bool g_checkhu_hyj(pais_t gpais, nums_t nums, int n, nums_t gnums, int gn, bool 
 	for (int i = 0; i < KIND_ZI; ++i)
 		for (int j = 1; j < 8; ++j) CHECK_COND(gpais[i][j] <= 0);
 
-	int k;
+	int k, j, num;
 	bool gconn;
 	for (int i = 0; i < n; ++i) {
-		k = NUM2I(nums[i]);
+		num = nums[i];
+		k = NUM2I(num);
+		j = NUM2J(num);
 		gconn = g_contains(gnums, gn, nums[i]);
-		CHECK_COND(gconn || KIND_ZI == k || 0 == k || 8 == k);
+		CHECK_COND(gconn || KIND_ZI == k || 0 == j || 8 == j);
 		zi_exist = zi_exist || KIND_ZI == k || gconn;
 	}
 	return zi_exist;
@@ -636,9 +646,9 @@ bool g_checkhu_xsy(pais_t gpais, nums_t nums, int n, bool jh, int eyei, int eyej
 {
 	CHECK_COND(jh && -1 != gpais[0][0]);
 
-	int kecnt = (gpais[KIND_ZI][4] > 2) +
-		    (gpais[KIND_ZI][5] > 2) +
-		    (gpais[KIND_ZI][6] > 2);
+	int kecnt = (gpais[KIND_ZI][4] >= 3) +
+		    (gpais[KIND_ZI][5] >= 3) +
+		    (gpais[KIND_ZI][6] >= 3);
 
 	for (int i = 0; i < n; ++i) kecnt += nums[i] > 33;
 	return kecnt > 1 && (-1 == eyei || (KIND_ZI == eyei && eyej > 3));
@@ -648,13 +658,13 @@ bool g_checkhu_xsx(pais_t gpais, nums_t nums, int n, bool jh, int eyei, int eyej
 {
 	CHECK_COND(jh && -1 != gpais[0][0]);
 
-	int kecnt = (gpais[KIND_ZI][0] > 2) +
-		    (gpais[KIND_ZI][1] > 2) +
-		    (gpais[KIND_ZI][2] > 2) +
-		    (gpais[KIND_ZI][3] > 2);
+	int kecnt = (gpais[KIND_ZI][0] >= 3) +
+		    (gpais[KIND_ZI][1] >= 3) +
+		    (gpais[KIND_ZI][2] >= 3) +
+		    (gpais[KIND_ZI][3] >= 3);
 
 	for (int i = 0; i < n; ++i) kecnt += (nums[i] > 29 && nums[i] < 34);
-	return kecnt > 2 && (-1 == eyei || (KIND_ZI == eyei && eyej < 4));
+	return kecnt >= 3 && (-1 == eyei || (KIND_ZI == eyei && eyej < 4));
 }
 
 bool g_checkhu_zys(pais_t gpais, nums_t nums, int n, nums_t gnums, int gn, bool jh)
@@ -683,12 +693,12 @@ bool g_checkhu_qyj(pais_t gpais, nums_t nums, int n, nums_t gnums, int gn, bool 
 	return true;
 }
 
-bool g_checkhu_ssy(pais_t pais, nums_t gnums, int n)
+bool g_checkhu_ssy(pais_t pais, nums_t gnums, int gn)
 {
 	CHECK_COND(14 == PAIS_COUNT(pais));
 
 	int m_gnums[G_MAX_COUNT * 2] = {-1, -1, -1, -1}; // num|cnt|num|cnt
-	int gcnt = g_filter(pais, gnums, n, m_gnums);
+	int gcnt = g_filter(pais, gnums, gn, m_gnums);
 
 	for (int i = 0; i < KIND_ZI; ++i) {
 		if (pais[i][0] > 1 || pais[i][8] > 1) goto _failed;
@@ -697,42 +707,43 @@ bool g_checkhu_ssy(pais_t pais, nums_t gnums, int n)
 	}
 	for (int i = 0; i < 7; ++i) if (pais[KIND_ZI][i] > 2) goto _failed;
 
-	g_reset(pais, m_gnums, n);
+	g_reset(pais, m_gnums, gn);
 	return true;
 
 _failed:
-	g_reset(pais, m_gnums, n);
+	g_reset(pais, m_gnums, gn);
 	return false;
 }
 
 bool g_checkhu_dsy(pais_t gpais, nums_t nums, int n, nums_t gnums, int gn, bool jh)
 {
 	CHECK_COND(jh && -1 != gpais[0][0]);
-	int kecnt = (gpais[3][4] > 2) +
-		    (gpais[3][5] > 2) +
-		    (gpais[3][6] > 2);
+	int kecnt = (gpais[3][4] >= 3) +
+		    (gpais[3][5] >= 3) +
+		    (gpais[3][6] >= 3);
 	for (int i = 0; i < n; ++i) kecnt += (nums[i] > 33 || g_contains(gnums, gn, nums[i]));
-	return kecnt > 2;
+	return kecnt >= 3;
 }
 
 bool g_checkhu_dsx(pais_t gpais, nums_t nums, int n, nums_t gnums, int gn, bool jh)
 {
 	CHECK_COND(jh && -1 != gpais[0][0]);
 
-	int kecnt = (gpais[3][0] > 2) +
-		    (gpais[3][1] > 2) +
-		    (gpais[3][2] > 2) +
-		    (gpais[3][3] > 2);
+	int kecnt = (gpais[3][0] >= 3) +
+		    (gpais[3][1] >= 3) +
+		    (gpais[3][2] >= 3) +
+		    (gpais[3][3] >= 3);
 	for (int i = 0; i < n; ++i) kecnt += (nums[i] > 29 && nums[i] < 34) || g_contains(gnums, gn, nums[i]);
 
 	return kecnt > 3;
 }
 
-bool insert_tingnode(QUEUE* h, int num, int mask)
+inline static bool insert_tingnode(QUEUE* h, int num, humask_t mask)
 {
 	struct tingnode_s *tnode = malloc(sizeof(struct tingnode_s));
 	if (NULL == tnode) goto _nonmem;
 	tnode->num = num;
+	tnode->score = getscore(mask);
 	tnode->mask = mask;
 	QUEUE_INIT(&tnode->node);
 	QUEUE_INSERT_TAIL(h, &tnode->node);
@@ -747,10 +758,9 @@ bool g_gettingdata(pais_t pais,
 		    humask_t mask,
 		    tingmap_t tmap)
 {
-	pais_t gpais;
-	int eyei, eyej, num, lnum, li, lj;
-	bool jh, pph, hys, qxd, qys, lqd, hyj, xsy, xsx, zys, qyj, ssy, dsy, dsx;
+	int num, lnum, li, lj;
 	bool hu = false;
+	humask_t hmask;
 
 	PAIS_FOREACH(i, j) {
 		if (pais[i][j] <= 0) continue;
@@ -764,51 +774,16 @@ bool g_gettingdata(pais_t pais,
 			if (lj == 9) continue;
 
 			PAIS_INSERT(pais, li, lj, 1);
-			jh = g_checkhu_jh(pais, gnums, gn, gpais, &eyei, &eyej) && insert_tingnode(&tmap[num], lnum, JH);
-			pph = (PPH & mask) && g_checkhu_pph(gpais, jh) && insert_tingnode(&tmap[num], lnum, PPH);
-			hys = (HYS & mask) && g_checkhu_hys(gpais, nums, n, gnums, gn, jh, eyei) && insert_tingnode(&tmap[num], lnum, HYS);
-			qxd = (QXD & mask) && g_checkhu_qxd(pais, gnums, n) && insert_tingnode(&tmap[num], lnum, QXD);
-			qys = (QYS & mask) && g_checkhu_qys(gpais, nums, n, gnums, gn, jh) && insert_tingnode(&tmap[num], lnum, QYS);
-			lqd = (LQD & mask) && g_checkhu_lqd(pais, gnums, n) && insert_tingnode(&tmap[num], lnum, LQD);
-			hyj = (HYJ & mask) && g_checkhu_hyj(gpais, nums, n, gnums, gn, jh, eyei) && insert_tingnode(&tmap[num], lnum, HYJ);
-			xsy = (XSY & mask) && g_checkhu_xsy(gpais, nums, n, jh, eyei, eyej) && insert_tingnode(&tmap[num], lnum, XSY);
-			xsx = (XSX & mask) && g_checkhu_xsx(gpais, nums, n, jh, eyei, eyej) && insert_tingnode(&tmap[num], lnum, XSX);
-			zys = (ZYS & mask) && g_checkhu_zys(gpais, nums, n, gnums, gn, jh) && insert_tingnode(&tmap[num], lnum, ZYS);
-			qyj = (QYJ & mask) && g_checkhu_qyj(gpais, nums, n, gnums, gn, jh) && insert_tingnode(&tmap[num], lnum, QYJ);
-			ssy = (SSY & mask) && g_checkhu_ssy(pais, gnums, n) && insert_tingnode(&tmap[num], lnum, SSY);
-			dsy = (DSY & mask) && g_checkhu_dsy(gpais, nums, n, gnums, gn, jh) && insert_tingnode(&tmap[num], lnum, DSY);
-			dsx = (DSX & mask) && g_checkhu_dsx(gpais, nums, n, gnums, gn, jh) && insert_tingnode(&tmap[num], lnum, DSX);
-			hu = hu || jh || pph || hys || qxd || qys || lqd || hyj || xsy || xsx || zys || qyj || ssy || dsy || dsx;
+			hmask = g_gethumask(pais,
+					    gnums, gn,
+					    nums , n,
+					    mask);
+			hmask && insert_tingnode(&tmap[num], lnum, hmask);
+			hu = hu || hmask;
 			PAIS_DELETE(pais, li, lj, 1);
 		}
 		PAIS_INSERT(pais, i, j, 1);
 	}
 	return hu;
-}
-
-humask_t g_gethumask(pais_t pais,
-		 nums_t gnums, int gn,
-		 nums_t nums , int n,
-		 humask_t mask)
-{
-	pais_t gpais;
-	int eyei, eyej;
-	bool jh;
-
-	jh = g_checkhu_jh(pais, gnums, gn, gpais, &eyei, &eyej);
-	return  (jh ? JH : 0) |
-		((PPH & mask) && g_checkhu_pph(gpais, jh) ? PPH : NONE) |
-		((HYS & mask) && g_checkhu_hys(gpais, nums, n, gnums, gn, jh, eyei) ? HYS : NONE) |
-		((QXD & mask) && g_checkhu_qxd(pais, gnums, n) ? QXD : NONE) |
-		((QYS & mask) && g_checkhu_qys(gpais, nums, n, gnums, gn, jh) ? QYS : NONE) |
-		((LQD & mask) && g_checkhu_lqd(pais, gnums, n) ? LQD : NONE) |
-		((HYJ & mask) && g_checkhu_hyj(gpais, nums, n, gnums, gn, jh, eyei) ? HYJ : NONE) |
-		((XSY & mask) && g_checkhu_xsy(gpais, nums, n, jh, eyei, eyej) ? XSY : NONE) |
-		((XSX & mask) && g_checkhu_xsx(gpais, nums, n, jh, eyei, eyej) ? XSX : NONE) |
-		((ZYS & mask) && g_checkhu_zys(gpais, nums, n, gnums, gn, jh) ? ZYS : NONE) |
-		((QYJ & mask) && g_checkhu_qyj(gpais, nums, n, gnums, gn, jh) ? QYJ : NONE) |
-		((SSY & mask) && g_checkhu_ssy(pais, gnums, n) ? SSY : NONE) |
-		((DSY & mask) && g_checkhu_dsy(gpais, nums, n, gnums, gn, jh) ? DSY : NONE) |
-		((DSX & mask) && g_checkhu_dsx(gpais, nums, n, gnums, gn, jh) ? DSX : NONE);
 }
 

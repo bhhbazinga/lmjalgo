@@ -28,8 +28,8 @@ CreatedTime: Thu 08 Jun 2017 08:38:06 PM CST
 #define LUA_BASE_EYE 1
 #define NUM_LUA2C(num) ((num) - LUA_BASE_NUM)
 #define NUM_C2LUA(num) ((num) + LUA_BASE_NUM)
-#define EYE_LUA2C(eye) (eye + LUA_BASE_EYE)
-#define EYE_C2LUA(eye) (eye - LUA_BASE_EYE)
+#define EYE_LUA2C(eye) ((eye) + LUA_BASE_EYE)
+#define EYE_C2LUA(eye) ((eye) - LUA_BASE_EYE)
 
 static void get_pais(lua_State *L, int index, pais_t pais)
 {
@@ -86,10 +86,12 @@ static void push_tingdata(lua_State* L, tingmap_t tmap)
 		for (int i = 0; i < n; ++i) {
 			tnode = tnodes[i];
 			lua_newtable(L);
-			lua_pushinteger(L, NUM_C2LUA(tnode->num));
-			lua_rawseti(L, -2, 1);
-			lua_pushinteger(L, tnode->mask);
-			lua_rawseti(L, -2, 2);
+				lua_pushinteger(L, NUM_C2LUA(tnode->num));
+				lua_rawseti(L, -2, 1);
+				lua_pushinteger(L, tnode->score);
+				lua_rawseti(L, -2, 2);
+				lua_pushinteger(L, tnode->mask);
+				lua_rawseti(L, -2, 3);
 			lua_rawseti(L, -2, i + 1);
 		}
 		lua_rawseti(L, -2, NUM_C2LUA(num));
