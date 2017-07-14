@@ -59,21 +59,9 @@ static int get_nums(lua_State*L, int index, nums_t nums)
 		lua_rawgeti(L, index, i + 1);
 		num = luaL_checkinteger(L, -1);
 		nums[i] = NUM_LUA2C(num);
+		lua_pop(L, 1);
 	}
 	return n;
-}
-
-static void push_pais(lua_State *L, pais_t pais)
-{
-	lua_newtable(L);
-	for (int i = 0; i < 4; ++i) {
-		lua_newtable(L);
-		for (int j = 0; j < 10; ++j) {
-			lua_pushinteger(L, NUM_C2LUA(pais[i][j]));
-			lua_rawseti(L, -2, j + 1);
-		}
-		lua_rawseti(L, -2, i + 1);
-	}
 }
 
 static void push_tingdata(lua_State* L, tingmap_t tmap)
@@ -85,7 +73,7 @@ static void push_tingdata(lua_State* L, tingmap_t tmap)
 		lua_newtable(L);
 		for (int i = 0; i < n; ++i) {
 			tnode = tnodes[i];
-			lua_newtable(L);
+			lua_createtable(L, 3, 0);
 				lua_pushinteger(L, NUM_C2LUA(tnode->num));
 				lua_rawseti(L, -2, 1);
 				lua_pushinteger(L, tnode->score);
@@ -96,45 +84,6 @@ static void push_tingdata(lua_State* L, tingmap_t tmap)
 		}
 		lua_rawseti(L, -2, NUM_C2LUA(num));
 	TINGMAP_FOREACH_END
-}
-
-static int lcheckhu_jh(lua_State *L)
-{
-	pais_t pais;
-	bool hu;
-	int eyei, eyej;
-
-	get_pais(L, 1, pais);
-	hu = checkhu_jh(pais, &eyei, &eyej);
-
-	lua_pushboolean(L, hu);
-	lua_pushinteger(L, EYE_C2LUA(eyei));
-	lua_pushinteger(L, EYE_C2LUA(eyej));
-
-	if (hu) {
-		lua_pushinteger(L, EYE_C2LUA(eyei));
-		lua_pushinteger(L, EYE_C2LUA(eyej));
-	}
-	return hu ? 3 : 1;
-}
-
-static int lg_checkhu_jh(lua_State *L)
-{
-	pais_t pais, gpais;
-	int gnums[G_MAX_COUNT], n, eyei, eyej;
-	bool hu;
-
-	get_pais(L, 1, pais);
-	n = get_nums(L, 2, gnums);
-	hu = g_checkhu_jh(pais, gnums, n, gpais, &eyei, &eyej);
-
-	lua_pushboolean(L, hu);
-	if (hu) {
-		push_pais(L, gpais);
-		lua_pushinteger(L, EYE_C2LUA(eyei));
-		lua_pushinteger(L, EYE_C2LUA(eyej));
-	}
-	return hu ? 4 : 1;
 }
 
 static int lg_gettingdata(lua_State *L)
@@ -189,8 +138,6 @@ static int lg_gethumask(lua_State *L)
 int luaopen_lmjalgo(lua_State *L)
 {
 	luaL_Reg lfuncs[] = {
-		{"checkhu_jh", lcheckhu_jh},
-		{"g_checkhu_jh", lg_checkhu_jh},
 		{"g_gettingdata", lg_gettingdata},
 		{"g_gethumask", lg_gethumask},
 		{NULL, NULL},

@@ -77,10 +77,10 @@ end
 local lmjalgo = require "lmjalgo"
 
 local pais = {
-	{0, 0, 2, 0, 0, 0, 0, 0, 0, 2},
-	{0, 1, 0, 0, 0, 0, 0, 0, 0, 1},
+	{0, 0, 1, 0, 2, 0, 1, 0, 0, 4},
 	{0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-	{3, 0, 0, 0, 0, 0, 0, 0, 0, 3},
+	{0, 0, 1, 0, 2, 1, 1, 0, 0, 5},
+	{0, 0, 0, 0, 0, 2, 0, 0, 0, 2},
 }
 
 local lnums = {}
@@ -89,8 +89,8 @@ for i = 11, 47 do
 end
 
 local t1 = os.clock()
-local data = lmjalgo.g_gettingdata(pais, {13}, lnums, {42,43,44}, ALL)
-local mask = lmjalgo.g_gethumask(pais, {13}, {42,43,44}, ALL)
+local data = lmjalgo.g_gettingdata(pais, {17}, lnums, {19}, ALL)
+local mask = lmjalgo.g_gethumask(pais, {17}, {19}, ALL)
 
 local t2 = os.clock()
 print(t2 - t1)
